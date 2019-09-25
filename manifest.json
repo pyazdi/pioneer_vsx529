@@ -1,7 +1,7 @@
 {
   "domain": "pioneer",
-  "name": "Async Pioneer",
-  "documentation": "https://github.com/realthk/asyncpioneer",
+  "name": "VSX-529 Async",
+  "documentation": "https://github.com/SpaceMaster85/pioneer_vsx529",
   "requirements": [],
   "dependencies": [],
   "codeowners": []
