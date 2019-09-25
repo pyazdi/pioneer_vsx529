@@ -1,43 +1,35 @@
-# Async Pioneer AV amp
+# Async Pioneer VSX-529
 
-My VSX-924 AV amp works with the original Home Assistant Pioneer driver for a few hours, a day or two at max only. After that it freezes, and only a power off/on cycle makes it useable again.
+NOT FINISHED YET!
+
+My VSX-529 AV amp is not with the original Home Assistant Pioneer driver.
+After some changes on the original driver it worked for a few hours, a day or two at max only. After that it freezes, and only a power off/on cycle makes it useable again.
 This is because that driver creates a new telnet connection to the amp for every update, it queries the required info, and then closes the connection. The telnet software in the amp firmware probably has memory leak, that might be the reason for this freeze after a few thousands of telnet connections.
 
-No firmware updates available for this amp anymore, so I re-wrote the driver in an async workflow: it creates a single connection and listens to the replies from the amp in an endless loop.
-The idea is probably right, because my amp hardly freezes now. As a bonus, it was also possible to capture the display-content of the amp.
+No firmware updates available for this amp anymore.
 
-I recommend the [Mini Media Player](https://github.com/kalkih/mini-media-player) from kalkih as a nice UI for the amp.
+I found the work of [realthk](https://github.com/realthk) who did a amazing work for his Pioneer AV.
+His AV has much more functions and didn't fit to my one.
 
-
-![Preview Image](https://user-images.githubusercontent.com/5654575/53702516-1f760700-3e08-11e9-900b-435edf7fbfa7.png)
+So I took his async approach and merged it with the original HASS Pioneer driver.
 
 ## Install
 
-1. Download and copy [media_player.py](https://github.com/realthk/asyncpioneer/blob/master/media_player.py) and [__init__.py](https://github.com/realthk/asyncpioneer/blob/master/__init__.py)into `config/custom_components/asyncpioneer` directory.
+1. Download and copy [media_player.py](https://github.com/realthk/asyncpioneer/blob/master/media_player.py) and [__init__.py](https://github.com/realthk/asyncpioneer/blob/master/__init__.py)into `config/custom_components/pioneer_vsx529` directory.
 
 2. Add a reference to this inside your `configuration.yaml`:
 
   ```yaml
 media_player:
-  - platform: asyncpioneer
-    host: 192.168.8.121
+  - platform: pioneer_vsx529
+    host: 192.168.0.120
     port: 8102
-    last_radio_station: "D06"
-    radio_stations:
-       "Bartok"          : "B02"
-       "Novi Sad"        : "B03"
-       "Petofi"          : "B04"
-       "Panda"           : "B05"
-       "Szabadkai Rádió" : "C02"
-       "Pannon Szabadka" : "C03"
-       "Prvi Radio"      : "D05"
-       "Hit FM Szabadka" : "D06"
-    disabled_sources:
-      - "HDMI 4"
-      - "HDMI 5"
-      - "HDMI 6/MHL"
-      - "iPod/USB"
-      - "THome"
+    name: Pioneer VSX-529
+    scan_interval: 1
+    sources:
+      'TV': '05'
+      'Webradio': '38'
+      'Alexa': '04'
   ```
 
 ## Options
