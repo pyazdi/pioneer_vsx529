@@ -11,6 +11,9 @@ His AV has much more functions and didn't fit to my one.
 
 So I took his async approach and merged it with the original HASS Pioneer driver.
 
+The Pioneer VSX-529 is not supporting the Volume Set function so I added Volume Step Support.
+Additional I build a small control loop for the Volume Set function. It is now possible to set a volume level directly. Please keep in mind, that this is not a perfect control loop, so use this function carefull!
+
 ## Install
 
 1. Download and copy [media_player.py](https://github.com/SpaceMaster85/pioneer_vsx529/blob/master/media_player.py) and [init.py](https://github.com/SpaceMaster85/pioneer_vsx529/blob/master/__init__.py) into `config/custom_components/pioneer_vsx529` directory.
