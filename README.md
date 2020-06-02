@@ -1,6 +1,6 @@
 # Async Pioneer VSX-529
 
-My VSX-529 AV amp is not with the original Home Assistant Pioneer driver.
+My VSX-529 AV amp is not working with the original Home Assistant Pioneer driver.
 After some changes on the original driver it worked for a few hours, a day or two at max only. After that it freezes, and only a power off/on cycle makes it useable again.
 This is because that driver creates a new telnet connection to the amp for every update, it queries the required info, and then closes the connection. The telnet software in the amp firmware probably has memory leak, that might be the reason for this freeze after a few thousands of telnet connections.
 
@@ -31,4 +31,6 @@ media_player:
       'Webradio': '38'
       'Alexa': '04'
   ```
+  
+  This verison needs Home Assistant v.0.110 or higher! For the previous version plese see the coresponding branch.
 
