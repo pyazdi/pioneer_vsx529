@@ -4,5 +4,6 @@
   "documentation": "https://github.com/SpaceMaster85/pioneer_vsx529",
   "requirements": [],
   "dependencies": [],
-  "codeowners": []
+  "codeowners": [],
+  "version": "1.0.0"
 }

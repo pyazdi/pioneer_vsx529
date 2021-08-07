@@ -11,7 +11,7 @@ from homeassistant.const import (
 )
 
 
-from homeassistant.components.media_player import MediaPlayerDevice, PLATFORM_SCHEMA
+from homeassistant.components.media_player import MediaPlayerEntity, PLATFORM_SCHEMA
 from homeassistant.components.media_player.const import (
     SUPPORT_SELECT_SOURCE,
     SUPPORT_TURN_OFF,
@@ -51,7 +51,8 @@ SUPPORT_PIONEER = (
     | SUPPORT_VOLUME_STEP
 )
 
-MAX_VOLUME = 150
+#MAX_VOLUME = 150
+MAX_VOLUME = 100
 MAX_SOURCE_NUMBERS = 60
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -87,7 +88,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 
-class PioneerDevice(MediaPlayerDevice):
+class PioneerDevice(MediaPlayerEntity):
     """Representation of a Pioneer device."""
 
     def __init__(self, hass, name, host, port, timeout, sources):
