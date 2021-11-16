@@ -136,7 +136,7 @@ class PioneerDevice(MediaPlayerEntity):
                     _LOGGER.info("Connected to %s:%d", self._host, self._port)
                 except:
                     _LOGGER.error("No connection to %s:%d, retry in 30s", \
-                        self.ip, self.port)
+                        self._host, self.port)
                     await asyncio.sleep(30)
                     continue
 
