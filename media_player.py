@@ -280,6 +280,20 @@ class PioneerDevice(MediaPlayerEntity):
         """Volume down media player."""
         self.telnet_command("VD")
 
+    def set_volume_level(self, volume):
+        """Set volume level, range 0..1."""
+        currentlevel = int(self._volume)
+        goal = int(volume * MAX_VOLUME)
+        goUp = currentlevel - goal < 0
+
+        _LOGGER.debug (f"Set volume: current {currentlevel} goal {goal} {goUp}")
+        # volume Up and down change it by step 2 e.g. 0,3,5,7,..
+        for x in range(abs(int((currentlevel - goal)/2))):
+          if (goUp):
+            self.volume_up()
+          else:
+            self.volume_down()
+
     def mute_volume(self, mute):
         """Mute (true) or unmute (false) media player."""
         self.telnet_command("MO" if mute else "MF")
