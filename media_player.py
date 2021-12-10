@@ -51,8 +51,7 @@ SUPPORT_PIONEER = (
     | SUPPORT_VOLUME_STEP
 )
 
-#MAX_VOLUME = 150
-MAX_VOLUME = 100
+MAX_VOLUME = 160
 MAX_SOURCE_NUMBERS = 60
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -83,7 +82,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         hass.data[DATA_PIONEER] = []
     hass.data[DATA_PIONEER].append(pioneer)
 
-    _LOGGER.debug("adding pio entity")
+    _LOGGER.debug("adding pioneer entity")
     async_add_entities([pioneer], update_before_add=False)
 
 
@@ -103,8 +102,6 @@ class PioneerDevice(MediaPlayerEntity):
         self._source_name_to_number = sources
         self._source_number_to_name = dict((v, k) for k, v in sources.items())
         
-        self._volume = None
-        self._muted = False
         self._power = False
 
         self._async_added = False
@@ -134,6 +131,11 @@ class PioneerDevice(MediaPlayerEntity):
                         await asyncio.open_connection(self._host, self._port)
                     self.hasConnection = True
                     _LOGGER.info("Connected to %s:%d", self._host, self._port)
+                    self.telnet_command("?P")  # Power state?
+                    self.telnet_command("?V")  # Volume?
+                    self.telnet_command("?M")  # Muted?
+                    self.telnet_command("?F")  # Input source?
+
                 except:
                     _LOGGER.error("No connection to %s:%d, retry in 30s", \
                         self._host, self.port)
@@ -158,8 +160,7 @@ class PioneerDevice(MediaPlayerEntity):
 
     def parseData(self, data):
         msg = ""
-        _LOGGER.debug("Parse data")       
-        _LOGGER.debug(data)
+        _LOGGER.debug(f"Parsing received data '{data}'")
         # Selected input source
         if data[:2] == "FN":
             source_number = data[2:4]
@@ -190,8 +191,8 @@ class PioneerDevice(MediaPlayerEntity):
 
         # Volume level
         elif data[:3] == "VOL":
-            self._volume = int(data[3:6]) / MAX_VOLUME
-            _LOGGER.debug("Volume: " + str(round(self._volume*100))+"%")
+            self._volume = int(data[3:6])
+            _LOGGER.debug(f"Volume: {self._volume}")
 
 
         else:
@@ -203,9 +204,8 @@ class PioneerDevice(MediaPlayerEntity):
         return msg
 
 
-
     def telnet_command(self, command):
-        _LOGGER.debug("Command: " + command)
+        _LOGGER.debug(f"Sending Command: '{command}'")
 
         if self.hasConnection:
             if not self.writer:
@@ -225,17 +225,10 @@ class PioneerDevice(MediaPlayerEntity):
         return
 
 
-
     async def async_update(self):
         """Get the latest details from the device."""
-        _LOGGER.debug("Update")
-
-        self.telnet_command("?P")  # Power state?
-
-        if self._power:
-            self.telnet_command("?V")  # Volume?
-            self.telnet_command("?M")  # Muted?
-            self.telnet_command("?F")  # Input source?
+        # Pioneer will send its status when it changes
+        # See readdata loop
         return True
 
     @property
@@ -253,7 +246,7 @@ class PioneerDevice(MediaPlayerEntity):
     @property
     def volume_level(self):
         """Volume level of the media player (0..1)."""
-        return self._volume
+        return self._volume/MAX_VOLUME
 
     @property
     def is_volume_muted(self):
@@ -287,27 +280,19 @@ class PioneerDevice(MediaPlayerEntity):
         """Volume down media player."""
         self.telnet_command("VD")
 
-    def set_volume_level(self, volume):
-        """Set volume level, range 0..1."""
-        # 60dB max
-#        while (self._volume != volume)
-        _LOGGER.warning("Self: %f %f %d", self._volume,  volume, (self._volume - volume)* MAX_VOLUME/2)
-        
-        for x in range(abs(round((self._volume - volume)* MAX_VOLUME/2))):
-            if ((self._volume - volume)< 0):
-                self.volume_up()
-            if ((self._volume - volume)> 0):
-                self.volume_down()
-            time.sleep(.100)
-
-
     def mute_volume(self, mute):
         """Mute (true) or unmute (false) media player."""
         self.telnet_command("MO" if mute else "MF")
 
     def turn_on(self):
         """Turn the media player on."""
-        self.telnet_command("PO")
+        # See Pioneer Document page 3
+        self.telnet_command("")
+        asyncio.sleep(0.1)
+        self.telnet_command("\nPO")
+        asyncio.sleep(0.1)
+        self.telnet_command("")
+        self.telnet_command("?P")
 
     def select_source(self, source):
         """Select input source."""
