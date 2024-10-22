@@ -62,6 +62,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     _LOGGER.debug("adding pioneer entity")
     async_add_entities([pioneer], update_before_add=False)
 
+    # Build the source name dictionaries if necessary
+    if not config[CONF_SOURCES]:
+        for i in range(MAX_SOURCE_NUMBERS):
+            try:
+                await asyncio.wait_for(pioneer.query_source(i), timeout=5)
+            except asyncio.TimeoutError:
+                print("Source query timeout occurred")
 
 
 class PioneerDevice(MediaPlayerEntity):
@@ -94,6 +101,7 @@ class PioneerDevice(MediaPlayerEntity):
         self.hasConnection = False
         self.reader = None
         self.writer = None
+        self.processed = asyncio.Condition()
 
         hass.bus.async_listen(EVENT_HOMEASSISTANT_STOP, self.stop_pioneer)
 
@@ -105,6 +113,11 @@ class PioneerDevice(MediaPlayerEntity):
     async def async_added_to_hass(self):
         _LOGGER.debug("Async async_added_to_hass")
         self._async_added = True
+    
+    async def query_source(self, num):
+        self.telnet_command(f"?RGB{str(num).zfill(2)}")
+        async with self.processed:
+            await self.processed.wait()
 
     async def readdata(self):
         _LOGGER.debug("Readdata")
@@ -139,6 +152,8 @@ class PioneerDevice(MediaPlayerEntity):
                 _LOGGER.debug("none read")
                 continue
             self.parseData(data.decode())
+            async with self.processed:
+                self.processed.notify()
 
         _LOGGER.debug("Finished Readdata")
         return True
@@ -179,6 +194,17 @@ class PioneerDevice(MediaPlayerEntity):
             self._volume = int(data[3:6])
             _LOGGER.debug(f"Volume: {self._volume}")
 
+        # Query source
+        elif data[:3] == "RGB":
+            source_number = data[3:5]
+            source_name = data[6:]
+            _LOGGER.debug("Source %d: %s", source_number, source_name)
+
+            self._source_name_to_number[source_name] = source_number
+            self._source_number_to_name[source_number] = source_name
+
+        elif data[:1] == "E":
+            _LOGGER.debug(f"{data[1:3]} error")
 
         else:
             print (data)
